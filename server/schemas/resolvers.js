@@ -5,23 +5,11 @@ const resolvers = {
   Query: {
     // get single user
     // get a single user by either their id or their username
-    // QUESTION - how to use the data object with args and context
     me: async (parent, args, context) => {
-      const foundUser = await User.findOne({
-        $or: [
-          { _id: context.user ? context.user._id : args.user.id },
-          { username: args.user.username },
-        ],
-      });
+      console.log(context.user);
+      const foundUser = await User.findOne({ _id: context.user._id });
 
-      if (!foundUser) {
-        // QUESTION - what replaces res to display a message?
-        return res
-          .status(400)
-          .json({ message: "Cannot find a user with this id!" });
-      }
-
-      res.json(foundUser);
+      return foundUser;
     },
   },
 
@@ -43,7 +31,6 @@ const resolvers = {
         );
         return updatedUser;
       }
-      return res.json({ message: "You need to be logged in!" });
     },
 
     // login
@@ -52,23 +39,15 @@ const resolvers = {
         $or: [{ username: username }, { email: email }],
       });
 
-      if (!user) {
-        return res.status(400).json({ message: "Can't find this user" });
-      }
-
       const correctPw = await user.isCorrectPassword(user.password);
 
-      if (!correctPw) {
-        return res.status(400).json({ message: "Wrong password!" });
-      }
       const token = signToken(user);
-      res.json({ token, user });
+      return { token, user };
     },
 
     // remove book
     removeBook: async (parent, { bookId }, context) => {
       if (context.user) {
-        // findOneAndUpdate OR findOneByIdAndUpdate ??
         const updatedUser = await User.findOneAndUpdate(
           { _id: context.user.id },
           { $pull: { savedBooks: { bookId } } },
@@ -77,10 +56,6 @@ const resolvers = {
 
         return updatedUser;
       }
-
-      return res
-        .status(400)
-        .json({ message: "No book was found with this id" });
     },
   },
 };

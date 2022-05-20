@@ -29,7 +29,7 @@ const SearchBooks = () => {
   // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
   useEffect(() => {
-    return () => saveBookIds(savedBookIds); // QUESTION - why is an arrow function needed here? won't saveBookIds(savedBookIds) run if simply called?
+    return () => saveBookIds(savedBookIds);
   });
 
   // create method to search for books and set state on form submit
@@ -41,7 +41,7 @@ const SearchBooks = () => {
     }
 
     try {
-      const response = await searchGoogleBooks(searchInput);
+      const response = await searchGoogleBooks({ searchInput });
 
       if (!response.ok) {
         throw new Error("something went wrong!");
@@ -77,14 +77,14 @@ const SearchBooks = () => {
     }
 
     try {
-      const response = await saveBook(bookToSave, token);
-
-      if (!response.ok) {
-        throw new Error("something went wrong!");
-      }
+      const response = await saveBook({
+        variables: { Book: bookToSave, token },
+      });
 
       // if book successfully saves to user's account, save book id to state
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);
+
+      return response;
     } catch (err) {
       console.error(err);
     }
